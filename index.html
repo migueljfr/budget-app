@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Finance">
+<meta name="theme-color" content="#0f1117">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<title>Finance</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif;background:#0f1117;color:#e8eaf0;overscroll-behavior:none}
+.app{max-width:430px;margin:0 auto;height:100vh;display:flex;flex-direction:column;background:#0f1117;position:relative;overflow:hidden}
+.header{background:#161a24;padding:env(safe-area-inset-top,16px) 20px 14px;padding-top:calc(env(safe-area-inset-top,0px) + 16px);border-bottom:0.5px solid rgba(255,255,255,0.07);flex-shrink:0}
+.header-top{display:flex;justify-content:space-between;align-items:center}
+.header-title{font-size:17px;font-weight:600;color:#f0f2f8}
+.month-nav{display:flex;align-items:center;gap:4px}
+.month-nav button{background:none;border:none;cursor:pointer;color:#7a8099;padding:6px;border-radius:6px;font-size:16px;line-height:1}
+.month-label{font-size:13px;font-weight:500;color:#c8ccd8;min-width:92px;text-align:center}
+.view-toggle{display:flex;background:#1c2030;border-radius:8px;padding:3px;gap:2px;border:0.5px solid rgba(255,255,255,0.07)}
+.vt-btn{padding:5px 14px;border-radius:6px;border:none;background:none;font-size:12px;font-weight:500;cursor:pointer;color:#5a6080;font-family:inherit;transition:all 0.15s}
+.vt-btn.active{background:#2a3050;color:#f0f2f8}
+.summary{padding:14px 14px 8px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.summary-card{background:#1c2030;border-radius:12px;border:0.5px solid rgba(255,255,255,0.07);padding:13px 14px}
+.summary-label{font-size:11px;color:#7a8099;margin-bottom:7px;display:flex;align-items:center;gap:5px;text-transform:uppercase;letter-spacing:0.05em}
+.summary-amount{font-size:20px;font-weight:600}
+.summary-amount.income{color:#1fd28a}
+.summary-amount.expense{color:#ff6b4a}
+.net-card{grid-column:1/-1;background:#1c2030;border-radius:12px;border:0.5px solid rgba(255,255,255,0.07);padding:13px 16px;display:flex;justify-content:space-between;align-items:center}
+.net-label{font-size:13px;color:#7a8099}
+.net-amount{font-size:22px;font-weight:600}
+.net-amount.positive{color:#1fd28a}
+.net-amount.negative{color:#ff6b4a}
+.progress-wrap{padding:0 14px 8px}
+.progress-bar-bg{height:5px;background:rgba(255,255,255,0.08);border-radius:99px;overflow:hidden}
+.progress-bar-fill{height:100%;border-radius:99px;background:#1fd28a;transition:width 0.5s ease}
+.progress-label{display:flex;justify-content:space-between;font-size:11px;color:#5a6080;margin-top:5px}
+.section{padding:8px 14px 0}
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.section-title{font-size:11px;font-weight:500;color:#5a6080;text-transform:uppercase;letter-spacing:0.07em}
+.export-btn{font-size:12px;color:#1fd28a;background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:4px;padding:0;font-family:inherit}
+.cat-row{background:#1c2030;border-radius:10px;border:0.5px solid rgba(255,255,255,0.06);padding:11px 14px;display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.cat-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.cat-info{flex:1;min-width:0}
+.cat-name{font-size:13px;font-weight:500;color:#e0e3ee}
+.cat-count{font-size:11px;color:#5a6080}
+.cat-amount{font-size:14px;font-weight:500;color:#c8ccd8}
+.tx-list{display:flex;flex-direction:column;gap:2px}
+.tx-date-group{font-size:11px;color:#5a6080;padding:10px 0 5px;font-weight:500;text-transform:uppercase;letter-spacing:0.05em}
+.tx-row{background:#1c2030;border-radius:10px;border:0.5px solid rgba(255,255,255,0.06);padding:11px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:3px;-webkit-user-select:none}
+.tx-row:active{background:#222840}
+.tx-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.tx-info{flex:1;min-width:0}
+.tx-merchant{font-size:13px;font-weight:500;color:#e0e3ee;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx-cat{font-size:11px;color:#5a6080;display:flex;align-items:center;gap:4px;margin-top:1px}
+.recur-badge{font-size:10px;color:#5ab4ff;background:rgba(90,180,255,0.12);padding:1px 6px;border-radius:4px;display:inline-flex;align-items:center;gap:2px}
+.tx-amount{font-size:14px;font-weight:500}
+.tx-amount.neg{color:#c8ccd8}
+.tx-amount.pos{color:#1fd28a}
+.icon-btn{background:none;border:none;cursor:pointer;color:#3a4060;font-size:18px;padding:6px;border-radius:5px;line-height:1}
+.icon-btn:active{color:#ff6b4a;background:rgba(255,107,74,0.12)}
+.bottom-nav{background:#161a24;border-top:0.5px solid rgba(255,255,255,0.07);display:flex;padding:10px 0;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));flex-shrink:0}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;padding:4px 0;color:#3a4060;font-size:10px;transition:color 0.15s;-webkit-user-select:none}
+.nav-btn.active{color:#1fd28a}
+.nav-btn i{font-size:22px}
+.fab-wrap{padding:10px 16px;flex-shrink:0;background:#0f1117}
+.fab{width:100%;height:52px;border-radius:14px;background:#1fd28a;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;color:#0a1a12;font-size:15px;font-weight:700;font-family:inherit;letter-spacing:0.01em;-webkit-user-select:none}
+.fab:active{opacity:0.88}
+.fab i{font-size:20px}
+.screens{flex:1;overflow:hidden;position:relative}
+.screen{display:none;height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:16px}
+.screen.active{display:block}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:50;align-items:flex-end;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:#161a24;border-radius:22px 22px 0 0;padding:20px 20px;padding-bottom:calc(28px + env(safe-area-inset-bottom,0px));width:100%;max-height:92vh;overflow-y:auto;-webkit-overflow-scrolling:touch;border-top:0.5px solid rgba(255,255,255,0.1)}
+.modal-handle{width:36px;height:4px;background:rgba(255,255,255,0.15);border-radius:99px;margin:0 auto 18px}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:18px;color:#f0f2f8;display:flex;justify-content:space-between;align-items:center}
+.form-label{font-size:11px;color:#5a6080;margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:0.05em}
+.form-group{margin-bottom:14px}
+.form-input{width:100%;padding:13px;border:0.5px solid rgba(255,255,255,0.1);border-radius:10px;font-size:16px;background:#1c2030;color:#e8eaf0;font-family:inherit;outline:none;-webkit-appearance:none}
+.form-input:focus{border-color:#1fd28a}
+.form-select{width:100%;padding:13px;border:0.5px solid rgba(255,255,255,0.1);border-radius:10px;font-size:15px;background:#1c2030;color:#e8eaf0;font-family:inherit;outline:none;-webkit-appearance:none;appearance:none}
+.amount-row{position:relative}
+.amount-row .currency{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:17px;color:#5a6080;font-weight:500}
+.amount-row input{padding-left:26px;font-size:20px;font-weight:600}
+.type-toggle{display:flex;gap:8px}
+.type-btn{flex:1;padding:12px;border-radius:10px;border:0.5px solid rgba(255,255,255,0.1);background:#1c2030;font-size:14px;font-weight:600;cursor:pointer;color:#7a8099;font-family:inherit}
+.type-btn.active-expense{background:rgba(255,107,74,0.15);border-color:#ff6b4a;color:#ff6b4a}
+.type-btn.active-income{background:rgba(31,210,138,0.15);border-color:#1fd28a;color:#1fd28a}
+.cat-picker{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.cat-pick-btn{padding:12px 6px;border-radius:10px;border:0.5px solid rgba(255,255,255,0.08);background:#1c2030;font-size:11px;cursor:pointer;text-align:center;color:#7a8099;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:5px;-webkit-user-select:none}
+.cat-pick-btn .pick-icon{font-size:22px}
+.cat-pick-btn.selected{border-color:#1fd28a;background:rgba(31,210,138,0.1);color:#1fd28a}
+.recur-toggle{display:flex;align-items:center;justify-content:space-between;background:#1c2030;border-radius:10px;border:0.5px solid rgba(255,255,255,0.08);padding:14px}
+.recur-toggle-label{font-size:13px;color:#c8ccd8;display:flex;align-items:center;gap:9px}
+.toggle-switch{position:relative;width:44px;height:26px;flex-shrink:0}
+.toggle-switch input{opacity:0;width:0;height:0;position:absolute}
+.toggle-slider{position:absolute;inset:0;background:rgba(255,255,255,0.12);border-radius:99px;cursor:pointer;transition:background 0.2s}
+.toggle-slider:before{content:'';position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:#e8eaf0;border-radius:50%;transition:transform 0.2s}
+.toggle-switch input:checked+.toggle-slider{background:#1fd28a}
+.toggle-switch input:checked+.toggle-slider:before{transform:translateX(18px)}
+.recur-freq{margin-top:10px}
+.submit-btn{width:100%;padding:16px;background:#1fd28a;color:#0a1a12;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;margin-top:10px;font-family:inherit;letter-spacing:0.01em}
+.submit-btn:active{opacity:0.88}
+.empty-state{text-align:center;padding:48px 20px;color:#3a4060;font-size:14px}
+.empty-state i{font-size:44px;margin-bottom:12px;display:block}
+.recur-row{background:#1c2030;border-radius:10px;border:0.5px solid rgba(255,255,255,0.06);padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:6px;cursor:pointer}
+.recur-row:active{background:#222840}
+.recur-info{flex:1;min-width:0}
+.recur-name{font-size:13px;font-weight:500;color:#e0e3ee}
+.recur-detail{font-size:11px;color:#5a6080;margin-top:1px}
+.del-modal-btn{background:none;border:none;cursor:pointer;color:#3a4060;font-size:20px;padding:6px;border-radius:6px}
+.del-modal-btn:active{color:#ff6b4a}
+.recur-header-row{padding:10px 0 6px}
+.recur-section-label{font-size:11px;font-weight:500;color:#5a6080;text-transform:uppercase;letter-spacing:0.07em}
+.add-recur-btn{font-size:13px;color:#1fd28a;background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:4px;font-family:inherit;font-weight:500;padding:4px}
+.year-summary{padding:14px 14px 8px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.year-card{background:#1c2030;border-radius:12px;border:0.5px solid rgba(255,255,255,0.07);padding:13px 14px}
+.year-card-label{font-size:11px;color:#7a8099;margin-bottom:7px;text-transform:uppercase;letter-spacing:0.05em}
+.year-card-amount{font-size:20px;font-weight:600}
+.year-card-amount.inc{color:#1fd28a}
+.year-card-amount.exp{color:#ff6b4a}
+.year-net-card{grid-column:1/-1;background:#1c2030;border-radius:12px;border:0.5px solid rgba(255,255,255,0.07);padding:13px 16px;display:flex;justify-content:space-between;align-items:center}
+.chart-wrap{margin:0 14px 8px;background:#1c2030;border-radius:12px;border:0.5px solid rgba(255,255,255,0.07);padding:16px 14px 10px}
+.chart-title{font-size:11px;color:#5a6080;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:14px}
+.bar-chart{display:flex;align-items:flex-end;gap:4px;height:90px}
+.bar-col{display:flex;flex-direction:column;align-items:center;flex:1;gap:3px;cursor:pointer}
+.bar-stack{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:2px;flex:1;width:100%}
+.bar-income{width:100%;border-radius:3px 3px 0 0;background:#1fd28a;min-height:2px}
+.bar-expense{width:100%;border-radius:3px 3px 0 0;background:#ff6b4a;min-height:2px}
+.bar-label{font-size:9px;color:#5a6080;text-align:center}
+.bar-label.active-month{color:#1fd28a}
+.chart-legend{display:flex;gap:14px;margin-top:10px}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:#7a8099}
+.legend-dot{width:8px;height:8px;border-radius:2px}
+.month-rows{display:flex;flex-direction:column;gap:6px}
+.month-row{background:#1c2030;border-radius:10px;border:0.5px solid rgba(255,255,255,0.06);padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer}
+.month-row:active{background:#222840}
+.month-row.current-month{border-color:rgba(31,210,138,0.35)}
+.month-row-name{font-size:13px;font-weight:600;color:#e0e3ee;width:34px;flex-shrink:0}
+.month-row-bars{flex:1;display:flex;flex-direction:column;gap:4px}
+.mini-bar-row{display:flex;align-items:center;gap:6px}
+.mini-bar-bg{flex:1;height:4px;background:rgba(255,255,255,0.06);border-radius:99px;overflow:hidden}
+.mini-bar-fill{height:100%;border-radius:99px}
+.mini-bar-amt{font-size:11px;color:#7a8099;min-width:52px;text-align:right}
+.month-row-net{font-size:13px;font-weight:600;min-width:56px;text-align:right}
+/* Install banner */
+.install-banner{display:none;position:fixed;bottom:0;left:0;right:0;background:#1c2030;border-top:0.5px solid rgba(31,210,138,0.3);padding:14px 16px;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:40;align-items:center;gap:12px;max-width:430px;margin:0 auto}
+.install-banner.show{display:flex}
+.install-banner-text{flex:1;font-size:13px;color:#c8ccd8}
+.install-banner-text strong{color:#f0f2f8;display:block;font-size:14px;margin-bottom:2px}
+.install-btn{background:#1fd28a;color:#0a1a12;border:none;border-radius:8px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
+.install-close{background:none;border:none;color:#5a6080;font-size:20px;cursor:pointer;padding:4px;line-height:1}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="header">
+    <div class="header-top">
+      <span class="header-title" id="screen-header-title">Finance</span>
+      <div id="header-controls"></div>
+    </div>
+  </div>
+
+  <div class="screens">
+    <div class="screen active" id="screen-dashboard">
+      <div id="view-month">
+        <div style="padding:12px 14px 4px;display:flex;justify-content:space-between;align-items:center">
+          <div class="month-nav">
+            <button onclick="changeMonth(-1)"><i class="ti ti-chevron-left"></i></button>
+            <span class="month-label" id="month-label"></span>
+            <button onclick="changeMonth(1)"><i class="ti ti-chevron-right"></i></button>
+          </div>
+          <button class="export-btn" onclick="exportCSV('month')"><i class="ti ti-download" style="font-size:12px"></i>Export CSV</button>
+        </div>
+        <div class="summary">
+          <div class="summary-card">
+            <div class="summary-label"><i class="ti ti-arrow-down" style="font-size:12px;color:#1fd28a"></i>Income</div>
+            <div class="summary-amount income" id="total-income">$0.00</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-label"><i class="ti ti-arrow-up" style="font-size:12px;color:#ff6b4a"></i>Expenses</div>
+            <div class="summary-amount expense" id="total-expense">$0.00</div>
+          </div>
+          <div class="net-card">
+            <span class="net-label">Net this month</span>
+            <span class="net-amount positive" id="net-amount">$0.00</span>
+          </div>
+        </div>
+        <div class="progress-wrap" id="progress-wrap" style="display:none">
+          <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-fill" style="width:0%"></div></div>
+          <div class="progress-label"><span>Expenses vs income</span><span id="progress-pct">0%</span></div>
+        </div>
+        <div class="section">
+          <div class="section-header"><span class="section-title">Spending by category</span></div>
+          <div id="cat-breakdown"></div>
+        </div>
+      </div>
+      <div id="view-year" style="display:none">
+        <div style="padding:12px 14px 4px;display:flex;justify-content:space-between;align-items:center">
+          <div class="month-nav">
+            <button onclick="changeYear(-1)"><i class="ti ti-chevron-left"></i></button>
+            <span class="month-label" id="year-label"></span>
+            <button onclick="changeYear(1)"><i class="ti ti-chevron-right"></i></button>
+          </div>
+          <button class="export-btn" onclick="exportCSV('year')"><i class="ti ti-download" style="font-size:12px"></i>Export CSV</button>
+        </div>
+        <div class="year-summary">
+          <div class="year-card">
+            <div class="year-card-label"><i class="ti ti-arrow-down" style="font-size:11px;color:#1fd28a"></i> Income</div>
+            <div class="year-card-amount inc" id="yr-income">$0.00</div>
+          </div>
+          <div class="year-card">
+            <div class="year-card-label"><i class="ti ti-arrow-up" style="font-size:11px;color:#ff6b4a"></i> Expenses</div>
+            <div class="year-card-amount exp" id="yr-expense">$0.00</div>
+          </div>
+          <div class="year-net-card">
+            <span class="net-label">Net this year</span>
+            <span class="net-amount positive" id="yr-net">$0.00</span>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <div class="chart-title">Monthly overview</div>
+          <div class="bar-chart" id="bar-chart"></div>
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#1fd28a"></div>Income</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#ff6b4a"></div>Expenses</div>
+          </div>
+        </div>
+        <div class="section" style="padding-bottom:8px">
+          <div class="section-header"><span class="section-title">Month by month</span></div>
+          <div class="month-rows" id="month-rows"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen" id="screen-transactions">
+      <div style="padding:12px 14px 4px;display:flex;justify-content:space-between;align-items:center">
+        <div class="month-nav">
+          <button onclick="changeMonth(-1)"><i class="ti ti-chevron-left"></i></button>
+          <span class="month-label" id="month-label-tx"></span>
+          <button onclick="changeMonth(1)"><i class="ti ti-chevron-right"></i></button>
+        </div>
+      </div>
+      <div style="padding:4px 14px 0"><div class="tx-list" id="tx-list"></div></div>
+    </div>
+
+    <div class="screen" id="screen-recurring">
+      <div style="padding:10px 14px 0" id="recur-list-wrap"></div>
+    </div>
+  </div>
+
+  <div class="fab-wrap" id="fab-wrap">
+    <button class="fab" onclick="openModal('transaction')">
+      <i class="ti ti-plus"></i>Add transaction
+    </button>
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="nav-btn active" id="nav-dashboard" onclick="showScreen('dashboard')">
+      <i class="ti ti-layout-dashboard"></i><span>Overview</span>
+    </button>
+    <button class="nav-btn" id="nav-transactions" onclick="showScreen('transactions')">
+      <i class="ti ti-list"></i><span>Transactions</span>
+    </button>
+    <button class="nav-btn" id="nav-recurring" onclick="showScreen('recurring')">
+      <i class="ti ti-repeat"></i><span>Recurring</span>
+    </button>
+  </nav>
+
+  <!-- Install banner (Android Chrome) -->
+  <div class="install-banner" id="install-banner">
+    <div class="install-banner-text">
+      <strong>Install Finance App</strong>
+      Add to your home screen for the best experience
+    </div>
+    <button class="install-btn" id="install-btn" onclick="installApp()">Install</button>
+    <button class="install-close" onclick="dismissInstall()"><i class="ti ti-x"></i></button>
+  </div>
+
+  <div class="modal-bg" id="modal-bg" onclick="closeModalOnBg(event)">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <div class="modal-title">
+        <span id="modal-title-text">Add transaction</span>
+        <button class="del-modal-btn" id="modal-del-btn" onclick="deleteFromModal()" style="display:none"><i class="ti ti-trash"></i></button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Type</label>
+        <div class="type-toggle">
+          <button class="type-btn active-expense" id="btn-expense" onclick="setType('expense')">Expense</button>
+          <button class="type-btn" id="btn-income" onclick="setType('income')">Income</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Amount</label>
+        <div class="amount-row">
+          <span class="currency">$</span>
+          <input class="form-input" type="number" id="input-amount" placeholder="0.00" inputmode="decimal" step="0.01" min="0">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <input class="form-input" type="text" id="input-merchant" placeholder="e.g. Chipotle, Netflix, Shell...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <div class="cat-picker" id="cat-picker"></div>
+      </div>
+      <div class="form-group" id="date-group">
+        <label class="form-label">Date</label>
+        <input class="form-input" type="date" id="input-date">
+      </div>
+      <div class="form-group" id="recur-group">
+        <label class="form-label">Recurring</label>
+        <div class="recur-toggle">
+          <span class="recur-toggle-label"><i class="ti ti-repeat" style="font-size:16px;color:#5ab4ff"></i>Repeat automatically</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="recur-check" onchange="toggleRecurFreq()">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="recur-freq" id="recur-freq" style="display:none">
+          <select class="form-select" id="recur-interval" style="margin-top:10px">
+            <option value="weekly">Weekly</option>
+            <option value="biweekly">Every 2 weeks</option>
+            <option value="monthly" selected>Monthly</option>
+            <option value="yearly">Yearly</option>
+          </select>
+        </div>
+      </div>
+      <button class="submit-btn" id="submit-btn" onclick="submitTransaction()">Add transaction</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const CATS={
+  expense:[
+    {id:'food',label:'Food & Dining',icon:'ti-tools-kitchen-2'},
+    {id:'bills',label:'Bills & Subs',icon:'ti-file-invoice'},
+    {id:'shop',label:'Shopping',icon:'ti-shopping-bag'},
+    {id:'gas',label:'Gas & Transport',icon:'ti-car'},
+    {id:'entmt',label:'Entertainment',icon:'ti-device-tv'},
+    {id:'other',label:'Other',icon:'ti-dots'}
+  ],
+  income:[
+    {id:'paycheck',label:'Paycheck',icon:'ti-building-bank'},
+    {id:'freelance',label:'Freelance',icon:'ti-briefcase'},
+    {id:'other',label:'Other',icon:'ti-dots'}
+  ]
+};
+const CAT_COLORS={food:'#1fd28a',bills:'#5ab4ff',shop:'#e066a0',gas:'#f5a623',entmt:'#a78bfa',other:'#606880',paycheck:'#1fd28a',freelance:'#5ab4ff'};
+const FREQ_LABELS={weekly:'Weekly',biweekly:'Every 2 weeks',monthly:'Monthly',yearly:'Yearly'};
+const MONTH_ABBR=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONTH_FULL=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function load(k,d){try{return JSON.parse(localStorage.getItem(k)||'null')||d}catch(e){return d}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+
+let transactions=load('budget_txns',[]);
+let recurringList=load('budget_recur',[]);
+let currentType='expense',selectedCat=null,editingId=null,editingRecurId=null;
+let viewYear=new Date().getFullYear(),viewMonth=new Date().getMonth();
+let currentView='month',modalMode='transaction';
+let deferredInstallPrompt=null;
+
+// PWA install prompt (Android Chrome)
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  deferredInstallPrompt=e;
+  if(!localStorage.getItem('install_dismissed')){
+    setTimeout(()=>document.getElementById('install-banner').classList.add('show'),2000);
+  }
+});
+window.addEventListener('appinstalled',()=>{
+  document.getElementById('install-banner').classList.remove('show');
+  deferredInstallPrompt=null;
+});
+function installApp(){
+  if(deferredInstallPrompt){
+    deferredInstallPrompt.prompt();
+    deferredInstallPrompt.userChoice.then(()=>{
+      deferredInstallPrompt=null;
+      document.getElementById('install-banner').classList.remove('show');
+    });
+  }
+}
+function dismissInstall(){
+  document.getElementById('install-banner').classList.remove('show');
+  localStorage.setItem('install_dismissed','1');
+}
+
+// Service worker
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  });
+}
+
+function fmt(n){return'$'+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function fmtShort(n){if(Math.abs(n)>=1000)return'$'+(Math.abs(n)/1000).toFixed(1)+'k';return'$'+Math.abs(n).toFixed(0)}
+function todayStr(){return new Date().toISOString().split('T')[0]}
+function txnsForMonth(y,m){return transactions.filter(t=>{const d=new Date(t.date+'T12:00:00');return d.getFullYear()===y&&d.getMonth()===m})}
+function txnsForYear(y){return transactions.filter(t=>{const d=new Date(t.date+'T12:00:00');return d.getFullYear()===y})}
+
+function changeMonth(dir){
+  viewMonth+=dir;
+  if(viewMonth>11){viewMonth=0;viewYear++}
+  if(viewMonth<0){viewMonth=11;viewYear--}
+  updateLabels();renderAll();
+}
+function changeYear(dir){viewYear+=dir;updateLabels();renderAll()}
+function updateLabels(){
+  const ml=MONTH_FULL[viewMonth]+' '+viewYear;
+  document.getElementById('month-label').textContent=ml;
+  document.getElementById('month-label-tx').textContent=ml;
+  document.getElementById('year-label').textContent=String(viewYear);
+}
+function setView(v){
+  currentView=v;
+  document.getElementById('view-month').style.display=v==='month'?'block':'none';
+  document.getElementById('view-year').style.display=v==='year'?'block':'none';
+  renderHeaderControls();renderAll();
+}
+function renderHeaderControls(){
+  const ctrl=document.getElementById('header-controls');
+  const titleEl=document.getElementById('screen-header-title');
+  let active='dashboard';
+  document.querySelectorAll('.screen').forEach(s=>{if(s.classList.contains('active'))active=s.id.replace('screen-','')});
+  if(active==='dashboard'){
+    titleEl.textContent='Finance';
+    ctrl.innerHTML=`<div class="view-toggle">
+      <button class="vt-btn${currentView==='month'?' active':''}" onclick="setView('month')">Month</button>
+      <button class="vt-btn${currentView==='year'?' active':''}" onclick="setView('year')">Year</button>
+    </div>`;
+  } else if(active==='recurring'){
+    titleEl.textContent='Recurring';
+    ctrl.innerHTML=`<button class="add-recur-btn" onclick="openModal('add-recur')"><i class="ti ti-plus" style="font-size:16px"></i>Add</button>`;
+  } else {
+    titleEl.textContent='Transactions';ctrl.innerHTML='';
+  }
+}
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  document.getElementById('nav-'+name).classList.add('active');
+  document.getElementById('fab-wrap').style.display=name==='recurring'?'none':'block';
+  renderHeaderControls();
+}
+function openModal(mode,id){
+  modalMode=mode||'transaction';editingId=null;editingRecurId=null;
+  const titleEl=document.getElementById('modal-title-text');
+  const delBtn=document.getElementById('modal-del-btn');
+  const dateGroup=document.getElementById('date-group');
+  const recurGroup=document.getElementById('recur-group');
+  const submitBtn=document.getElementById('submit-btn');
+  setType('expense');
+  document.getElementById('input-amount').value='';
+  document.getElementById('input-merchant').value='';
+  document.getElementById('input-date').value=todayStr();
+  document.getElementById('recur-check').checked=false;
+  document.getElementById('recur-freq').style.display='none';
+  document.getElementById('recur-interval').value='monthly';
+  delBtn.style.display='none';
+  if(mode==='edit-transaction'&&id!=null){
+    const t=transactions.find(x=>x.id===id);if(!t)return;
+    editingId=id;titleEl.textContent='Edit transaction';delBtn.style.display='block';
+    submitBtn.textContent='Save changes';
+    setType(t.type);selectedCat=t.cat;
+    document.getElementById('input-amount').value=t.amount;
+    document.getElementById('input-merchant').value=t.merchant;
+    document.getElementById('input-date').value=t.date;
+    renderCatPicker();dateGroup.style.display='block';recurGroup.style.display='none';
+  } else if(mode==='edit-recur'&&id!=null){
+    const r=recurringList.find(x=>x.id===id);if(!r)return;
+    editingRecurId=id;titleEl.textContent='Edit recurring';delBtn.style.display='block';
+    submitBtn.textContent='Save changes';
+    setType(r.type);selectedCat=r.cat;
+    document.getElementById('input-amount').value=r.amount;
+    document.getElementById('input-merchant').value=r.merchant;
+    document.getElementById('recur-check').checked=true;
+    document.getElementById('recur-freq').style.display='block';
+    document.getElementById('recur-interval').value=r.interval;
+    renderCatPicker();dateGroup.style.display='none';recurGroup.style.display='block';
+  } else if(mode==='add-recur'){
+    titleEl.textContent='Add recurring';submitBtn.textContent='Add recurring';
+    dateGroup.style.display='none';recurGroup.style.display='block';
+    document.getElementById('recur-check').checked=true;
+    document.getElementById('recur-freq').style.display='block';
+  } else {
+    titleEl.textContent='Add transaction';submitBtn.textContent='Add transaction';
+    dateGroup.style.display='block';recurGroup.style.display='block';
+  }
+  document.getElementById('modal-bg').classList.add('open');
+}
+function closeModalOnBg(e){if(e.target===document.getElementById('modal-bg'))closeModal()}
+function closeModal(){document.getElementById('modal-bg').classList.remove('open')}
+function setType(type){
+  currentType=type;
+  if(editingId===null&&editingRecurId===null)selectedCat=null;
+  document.getElementById('btn-expense').className='type-btn'+(type==='expense'?' active-expense':'');
+  document.getElementById('btn-income').className='type-btn'+(type==='income'?' active-income':'');
+  renderCatPicker();
+}
+function renderCatPicker(){
+  document.getElementById('cat-picker').innerHTML=CATS[currentType].map(c=>`
+    <button class="cat-pick-btn${selectedCat===c.id?' selected':''}" onclick="selectCat('${c.id}')">
+      <i class="ti ${c.icon} pick-icon"></i><span>${c.label}</span>
+    </button>`).join('');
+}
+function selectCat(id){selectedCat=id;renderCatPicker()}
+function toggleRecurFreq(){document.getElementById('recur-freq').style.display=document.getElementById('recur-check').checked?'block':'none'}
+function submitTransaction(){
+  const amount=parseFloat(document.getElementById('input-amount').value);
+  const merchant=document.getElementById('input-merchant').value.trim();
+  const date=document.getElementById('input-date').value;
+  const isRecur=document.getElementById('recur-check').checked;
+  const interval=document.getElementById('recur-interval').value;
+  if(!amount||amount<=0){document.getElementById('input-amount').focus();return}
+  if(!merchant){document.getElementById('input-merchant').focus();return}
+  if(!selectedCat)return;
+  if(editingId!==null){
+    const i=transactions.findIndex(t=>t.id===editingId);
+    if(i>-1)transactions[i]={...transactions[i],type:currentType,amount,merchant,cat:selectedCat,date};
+    save('budget_txns',transactions);closeModal();renderAll();return;
+  }
+  if(editingRecurId!==null){
+    const i=recurringList.findIndex(r=>r.id===editingRecurId);
+    if(i>-1)recurringList[i]={...recurringList[i],type:currentType,amount,merchant,cat:selectedCat,interval};
+    save('budget_recur',recurringList);closeModal();renderAll();return;
+  }
+  if(modalMode==='add-recur'||isRecur){
+    recurringList.push({id:Date.now(),type:currentType,amount,merchant,cat:selectedCat,interval});
+    save('budget_recur',recurringList);
+    if(modalMode==='add-recur'){closeModal();renderAll();return}
+  }
+  if(modalMode!=='add-recur'){
+    if(!date)return;
+    transactions.unshift({id:Date.now()+1,type:currentType,amount,merchant,cat:selectedCat,date,recurring:isRecur?interval:null});
+    save('budget_txns',transactions);
+  }
+  closeModal();renderAll();
+}
+function deleteFromModal(){
+  if(editingId!==null){transactions=transactions.filter(t=>t.id!==editingId);save('budget_txns',transactions)}
+  else if(editingRecurId!==null){recurringList=recurringList.filter(r=>r.id!==editingRecurId);save('budget_recur',recurringList)}
+  closeModal();renderAll();
+}
+function deleteTransaction(id){transactions=transactions.filter(t=>t.id!==id);save('budget_txns',transactions);renderAll()}
+function catMeta(type,id){return(CATS[type]||[]).find(c=>c.id===id)||{label:'Other',icon:'ti-dots'}}
+function renderDashboard(){
+  const txns=txnsForMonth(viewYear,viewMonth);
+  const income=txns.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const expense=txns.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  const net=income-expense;
+  document.getElementById('total-income').textContent=fmt(income);
+  document.getElementById('total-expense').textContent=fmt(expense);
+  const netEl=document.getElementById('net-amount');
+  netEl.textContent=(net<0?'-':'')+fmt(net);
+  netEl.className='net-amount '+(net>=0?'positive':'negative');
+  if(income>0){
+    const pct=Math.min(100,Math.round(expense/income*100));
+    const fill=document.getElementById('progress-fill');
+    fill.style.width=pct+'%';
+    fill.style.background=pct>90?'#ff6b4a':pct>70?'#f5a623':'#1fd28a';
+    document.getElementById('progress-pct').textContent=pct+'% of income';
+    document.getElementById('progress-wrap').style.display='block';
+  } else {document.getElementById('progress-wrap').style.display='none'}
+  const catMap={};
+  txns.filter(t=>t.type==='expense').forEach(t=>{
+    if(!catMap[t.cat])catMap[t.cat]={total:0,count:0};
+    catMap[t.cat].total+=t.amount;catMap[t.cat].count++;
+  });
+  const sorted=Object.entries(catMap).sort((a,b)=>b[1].total-a[1].total);
+  const bd=document.getElementById('cat-breakdown');
+  if(!sorted.length){bd.innerHTML='<div class="empty-state"><i class="ti ti-receipt-off"></i>No expenses this month</div>';return}
+  bd.innerHTML=sorted.map(([id,data])=>{
+    const meta=catMeta('expense',id);const color=CAT_COLORS[id]||'#606880';
+    return`<div class="cat-row">
+      <div class="cat-icon" style="background:${color}20;color:${color}"><i class="ti ${meta.icon}"></i></div>
+      <div class="cat-info"><div class="cat-name">${meta.label}</div><div class="cat-count">${data.count} transaction${data.count!==1?'s':''}</div></div>
+      <div class="cat-amount">${fmt(data.total)}</div>
+    </div>`;
+  }).join('');
+}
+function renderYearView(){
+  const now=new Date();const curY=now.getFullYear(),curM=now.getMonth();
+  const monthData=Array.from({length:12},(_,m)=>{
+    const txns=txnsForMonth(viewYear,m);
+    const inc=txns.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+    const exp=txns.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+    return{m,inc,exp,net:inc-exp};
+  });
+  const yrInc=monthData.reduce((s,d)=>s+d.inc,0);
+  const yrExp=monthData.reduce((s,d)=>s+d.exp,0);
+  const yrNet=yrInc-yrExp;
+  document.getElementById('yr-income').textContent=fmt(yrInc);
+  document.getElementById('yr-expense').textContent=fmt(yrExp);
+  const yrNetEl=document.getElementById('yr-net');
+  yrNetEl.textContent=(yrNet<0?'-':'')+fmt(yrNet);
+  yrNetEl.className='net-amount '+(yrNet>=0?'positive':'negative');
+  const maxVal=Math.max(...monthData.map(d=>Math.max(d.inc,d.exp)),1);
+  const chartH=86;
+  document.getElementById('bar-chart').innerHTML=monthData.map(({m,inc,exp})=>{
+    const incH=Math.round((inc/maxVal)*(chartH-8));
+    const expH=Math.round((exp/maxVal)*(chartH-8));
+    const isCur=viewYear===curY&&m===curM;
+    return`<div class="bar-col" onclick="jumpToMonth(${m})">
+      <div class="bar-stack">
+        ${inc>0?`<div class="bar-income" style="height:${incH}px"></div>`:'<div style="height:2px"></div>'}
+        ${exp>0?`<div class="bar-expense" style="height:${expH}px"></div>`:'<div style="height:2px"></div>'}
+      </div>
+      <div class="bar-label${isCur?' active-month':''}">${MONTH_ABBR[m]}</div>
+    </div>`;
+  }).join('');
+  const maxInc=Math.max(...monthData.map(d=>d.inc),1);
+  const maxExp=Math.max(...monthData.map(d=>d.exp),1);
+  document.getElementById('month-rows').innerHTML=monthData.map(({m,inc,exp,net})=>{
+    if(inc===0&&exp===0)return'';
+    const isCur=viewYear===curY&&m===curM;
+    const netColor=net>=0?'#1fd28a':'#ff6b4a';
+    return`<div class="month-row${isCur?' current-month':''}" onclick="jumpToMonth(${m})">
+      <div class="month-row-name">${MONTH_ABBR[m]}</div>
+      <div class="month-row-bars">
+        <div class="mini-bar-row">
+          <div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${Math.round(inc/maxInc*100)}%;background:#1fd28a"></div></div>
+          <div class="mini-bar-amt" style="color:#1fd28a">+${fmtShort(inc)}</div>
+        </div>
+        <div class="mini-bar-row">
+          <div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${Math.round(exp/maxExp*100)}%;background:#ff6b4a"></div></div>
+          <div class="mini-bar-amt" style="color:#7a8099">-${fmtShort(exp)}</div>
+        </div>
+      </div>
+      <div class="month-row-net" style="color:${netColor}">${net>=0?'+':'-'}${fmtShort(net)}</div>
+    </div>`;
+  }).join('');
+}
+function jumpToMonth(m){viewMonth=m;setView('month');updateLabels()}
+function renderTransactions(){
+  const txns=txnsForMonth(viewYear,viewMonth);
+  const el=document.getElementById('tx-list');
+  if(!txns.length){el.innerHTML='<div class="empty-state"><i class="ti ti-receipt"></i>No transactions yet.<br>Tap the button below to add one.</div>';return}
+  const groups={};
+  txns.forEach(t=>{if(!groups[t.date])groups[t.date]=[];groups[t.date].push(t)});
+  const sorted=Object.entries(groups).sort((a,b)=>b[0].localeCompare(a[0]));
+  el.innerHTML=sorted.map(([date,items])=>{
+    const d=new Date(date+'T12:00:00');
+    const label=d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    const rows=items.map(t=>{
+      const meta=catMeta(t.type,t.cat);const color=CAT_COLORS[t.cat]||'#606880';
+      const sign=t.type==='income'?'+':'-';
+      const badge=t.recurring?`<span class="recur-badge"><i class="ti ti-repeat" style="font-size:9px"></i>${FREQ_LABELS[t.recurring]||''}</span>`:'';
+      return`<div class="tx-row" onclick="openModal('edit-transaction',${t.id})">
+        <div class="tx-icon" style="background:${color}20;color:${color}"><i class="ti ${meta.icon}"></i></div>
+        <div class="tx-info"><div class="tx-merchant">${t.merchant}</div><div class="tx-cat">${meta.label}${badge}</div></div>
+        <div class="tx-amount ${t.type==='income'?'pos':'neg'}">${sign}${fmt(t.amount)}</div>
+        <button class="icon-btn" onclick="event.stopPropagation();deleteTransaction(${t.id})"><i class="ti ti-trash"></i></button>
+      </div>`;
+    }).join('');
+    return`<div class="tx-date-group">${label}</div>${rows}`;
+  }).join('');
+}
+function renderRecurring(){
+  const wrap=document.getElementById('recur-list-wrap');
+  if(!recurringList.length){wrap.innerHTML='<div class="empty-state"><i class="ti ti-repeat"></i>No recurring transactions yet.</div>';return}
+  const inc=recurringList.filter(r=>r.type==='income');
+  const exp=recurringList.filter(r=>r.type==='expense');
+  const makeRows=arr=>arr.map(r=>{
+    const meta=catMeta(r.type,r.cat);const color=CAT_COLORS[r.cat]||'#606880';
+    const sign=r.type==='income'?'+':'-';const amtColor=r.type==='income'?'#1fd28a':'#c8ccd8';
+    return`<div class="recur-row" onclick="openModal('edit-recur',${r.id})">
+      <div class="cat-icon" style="background:${color}20;color:${color}"><i class="ti ${meta.icon}"></i></div>
+      <div class="recur-info"><div class="recur-name">${r.merchant}</div><div class="recur-detail">${meta.label} · ${FREQ_LABELS[r.interval]||r.interval}</div></div>
+      <div style="font-size:14px;font-weight:600;color:${amtColor}">${sign}${fmt(r.amount)}</div>
+    </div>`;
+  }).join('');
+  let html='';
+  if(inc.length)html+=`<div class="recur-header-row"><span class="recur-section-label">Income</span></div>${makeRows(inc)}`;
+  if(exp.length)html+=`<div class="recur-header-row"><span class="recur-section-label">Expenses</span></div>${makeRows(exp)}`;
+  wrap.innerHTML=html;
+}
+function exportCSV(scope){
+  const txns=scope==='year'?txnsForYear(viewYear):txnsForMonth(viewYear,viewMonth);
+  if(!txns.length){alert('No transactions to export.');return}
+  const rows=[['Date','Description','Category','Type','Amount']];
+  [...txns].sort((a,b)=>a.date.localeCompare(b.date)).forEach(t=>{
+    const meta=catMeta(t.type,t.cat);
+    rows.push([t.date,'"'+t.merchant.replace(/"/g,'""')+'"',meta.label,t.type==='income'?'Income':'Expense',(t.type==='expense'?'-':'')+t.amount.toFixed(2)]);
+  });
+  const blob=new Blob([rows.map(r=>r.join(',')).join('\n')],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;
+  a.download=scope==='year'?`budget_${viewYear}.csv`:`budget_${viewYear}_${(viewMonth+1).toString().padStart(2,'0')}.csv`;
+  a.click();URL.revokeObjectURL(url);
+}
+function renderAll(){renderDashboard();renderYearView();renderTransactions();renderRecurring()}
+renderCatPicker();updateLabels();renderHeaderControls();renderAll();
+</script>
+</body>
+</html>
